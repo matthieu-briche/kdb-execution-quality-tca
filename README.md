@@ -116,7 +116,7 @@ tests/
 
 ## Related projects
 
-- [kdb-hawkes-simulation-one-day](https://github.com/matthieu-briche/kdb-hawkes-simulation-one-day) — Hawkes-driven quote simulation, statistical validation and MLE in q
+- [kdb-hawkes-quote-simulator](https://github.com/matthieu-briche/kdb-hawkes-quote-simulator) — Hawkes-driven quote simulation, statistical validation and MLE in q
 - [kdb-q-tick-data-analytics](https://github.com/matthieu-briche/kdb-q-tick-data-analytics) — full tick architecture (TP, RDB, HDB, RTE, gateway) driven from Python with PyKX
 
 ## License
