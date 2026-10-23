@@ -3,7 +3,12 @@
 /   slipBps > 0  -> we paid more than the mid (cost)
 /   edge    > 0  -> we bought below / sold above the mid (cash gained)
 
+\l src/mods.q
+
 \d .tca
+
+/ optional KDB-X selectk module (partial selection for topN), () on plain kdb+
+sk:.mods.load`dot.selectk;
 
 / markout horizons: where did the mid go after the fill?
 horizons:`mo1s`mo5s`mo1m`mo5m!0D00:00:01 0D00:00:05 0D00:01:00 0D00:05:00;
@@ -45,8 +50,17 @@ bars:{[c;m]
     by minute:m xbar time.minute from c
   };
 
-/ top or bottom n rows of t by column col, returned in ascending order of col
-topN:{[col;dir;n;t] t:0!t; col xasc n#$[dir=`top;col xdesc t;col xasc t]};
+/ top or bottom n rows of t by column col, returned in ascending order of col.
+/ With the selectk module: partial selection of the n row indices (Floyd-Rivest, O(N)),
+/ then a sort of those n rows only. Otherwise: full sort of the column, O(N log N).
+/ The module is skipped for column types it does not handle and for columns holding
+/ nulls (a float null is NaN, which breaks the comparisons of the selection).
+skTypes:4 5 6 7 8 9 10 12 13 14 15 16 17 18 19h;
+topN:{[col;dir;n;t] t:0!t; v:t col; n:"j"$n;
+  i:$[(count sk)&(n>0)&(type[v] in skTypes)&not any null v;
+      sk[$[dir=`top;`ikmax;`ikmin]][n;v];
+      n sublist $[dir=`top;idesc;iasc] v];
+  col xasc t i};
 
 / 5. outliers (fby): size vs the symbol's median, slippage z-score within each broker
 sizeOutliers:{[c;k] select from c where qty>k*(med;qty) fby sym};
