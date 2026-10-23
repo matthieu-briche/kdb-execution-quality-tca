@@ -41,6 +41,12 @@ check["fby size outlier vs symbol median";5000~exec qty from .tca.sizeOutliers[t
 tb:([] k:1 2 3 4; v:5 1 9 3);
 check["topN returns the top rows in ascending order";5 9~exec v from .tca.topN[`v;`top;2;tb]];
 check["topN bottom";1 3~exec v from .tca.topN[`v;`bottom;2;tb]];
+check["topN with n larger than the table returns each row once";4=count .tca.topN[`v;`top;10;tb]];
+/ same rows whether the selectk module is loaded or not (pure-q fallback forced by .tca.sk:())
+tr:([] k:til 1000; v:1000?1f);
+r0:.tca.topN[`v;`top;10;tr];
+sk0:.tca.sk; .tca.sk:(); r1:.tca.topN[`v;`top;10;tr]; .tca.sk:sk0;
+check["topN: selectk module and full sort agree";r0~r1];
 
 ec:.tca.edgeCor ([] edge:1 2 3f; qty:2 4 6; trades:3 2 1; notional:1 2 3f);
 check["edge correlates 1 with itself, -1 with a reversed series";near[ec`edge`qty`trades;1 1 -1f]];

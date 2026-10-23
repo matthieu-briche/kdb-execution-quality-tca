@@ -43,6 +43,13 @@ hdr "Correlation with edge";       show edgeCor;
 hdr "Size outliers (>10x median)"; show select tradeId,time,sym,side,qty,broker from bigOrders;
 hdr "Slippage outliers (|z|>3)";   show count slipOut;
 
+/ --- top-N: full sort vs partial selection -------------------------------------
+hdr "Top 10 of 10M values";
+v:10000000?1f;
+-1 "full sort      10#idesc v           : ",ms "10#idesc v";
+-1 "selectk module .tca.sk[`ikmax][10;v]: ",$[count .tca.sk; ms ".tca.sk[`ikmax][10;v]"; "not available (needs KDB-X)"];
+delete v from `.;
+
 / --- export --------------------------------------------------------------------
 system "mkdir -p output";
 wcsv:{[name;t] (hsym `$"output/",name,".csv") 0: csv 0: 0!t};
