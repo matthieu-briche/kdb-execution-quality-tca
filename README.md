@@ -103,15 +103,26 @@ q src/report.q     # simulate the session, print the report, export output/*.csv
 
 `report.q` prints the best-execution rate, broker and venue scorecards, the broker markout curve, the best and quietest 15-minute buckets, the edge correlations and the outliers, with timings for the `aj` steps. The session stays open with every table in memory (`ctx`, `brokerCard`, `bars15`…) for further queries.
 
+### Optional: faster top-N with KDB-X
+
+`.tca.topN` ranks rows with a full sort, which costs O(N log N) to keep n rows. On KDB-X with the `dot.selectk` module from [adotsch/kdb-x](https://github.com/adotsch/kdb-x) installed, it selects the n row indices directly (Floyd–Rivest, O(N)) and sorts only those:
+
+```q
+sk[$[dir=`top;`ikmax;`ikmin]][n;v]      / instead of  n sublist idesc v
+```
+
+The gain is nil on the 26 fifteen-minute buckets of the report and grows with N: `report.q` times both on 10 million values. On plain kdb+ 4.x, `src/mods.q` reports that the module is missing and `topN` keeps the full sort; a test checks that both paths return the same rows. The module is also skipped for columns with nulls, since a float null is NaN and breaks the selection's comparisons.
+
 ## Project layout
 
 ```
 src/
   sim.q      quote and fill simulator (namespace .sim)
   tca.q      TCA library: context, markouts, scorecards, buckets, outliers (namespace .tca)
+  mods.q     optional KDB-X modules, with a pure-q fallback
   report.q   end-to-end run and CSV export
 tests/
-  test.q     13 unit tests, exit code 1 on failure
+  test.q     15 unit tests, exit code 1 on failure
 ```
 
 ## Related projects
